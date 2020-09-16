@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "timer.h"
+#include <stdio.h>
 
 void init_uart(){
 cb.writeIndex = 0;
