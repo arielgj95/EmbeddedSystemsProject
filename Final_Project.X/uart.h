@@ -8,7 +8,7 @@
 #ifndef UART_H
 #define	UART_H
 
-#define BUFFER_SIZE 17
+#define BUFFER_SIZE 60
 typedef struct{
 char buffer[BUFFER_SIZE];
 int readIndex;

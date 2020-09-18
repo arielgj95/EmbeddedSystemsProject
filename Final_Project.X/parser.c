@@ -43,9 +43,8 @@ int parse_byte(parser_state* ps, char byte) {
     return NO_MESSAGE;
 }
 
-void parse_init(){
-    parser_state pstate;
-	pstate.state = STATE_DOLLAR;
-	pstate.index_type = 0; 
-	pstate.index_payload = 0;
+void parse_init(parser_state *pstate){
+	pstate->state = STATE_DOLLAR;
+	pstate->index_type = 0;
+	pstate->index_payload = 0;
 }

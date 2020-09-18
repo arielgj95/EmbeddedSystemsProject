@@ -37,6 +37,8 @@
 #include <xc.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include "parser.h"
 #include "pwm.h"
 #include "spi.h"
@@ -60,16 +62,51 @@ int *pdc1 = 0;
 int *pdc2 = 0;
 heartbeat schedInfo[MAXTASKS];
 
-void task1(parser_state* ps){
+/*Question about task1:
+1) Bisogna disattivare interrupt UART all'interno del for? (per evitare di sovrascrivere elementi dell'array mentre lì sto leggendo?);
+ *  2) Se abbiamo sempre attivi gli interrupt anche negli altri task, come dovrebbero essere gestiti i messaggi e il buffer?;
+ *  3) Si può fare senza interrup (leggendo direttamente da UxRDA);
+ * */
+
+void task1(parser_state* ps, CircularBuffer *cb,int* n1, int* n2, int* max, int* min, bool *hlena){
     int check;
     char value;
-    cb->readIndex = 0;
-    for(int i = 0; check == NEW_MESSAGE || check == NO_MESSAGE; i++){
+    char c = ',';
+    int j = 0;
+    int avl = avl_in_buffer(&cb);
+    for(int i= 0; i < avl; i++){
         read_buffer(&cb, &value);
         char byte = *value;
-        check = parse_byte( &ps, byte);
-    }
-}
+        check = parse_byte(&ps, byte);
+        char numero[10];
+        char numero1[10];
+        if(check == NEW_MESSAGE){
+            if(strncmp(ps->msg_type,"HLREF",5) == 0){
+                for(int j = 0; ps->msg_payload[j]!= c; j++){
+                    numero[j] = ps->msg_payload[j];
+                }
+                *n1 = atoi(numero);
+                for(int z = 0; ps->msg_payload[j+z]!= '\0'; z++){
+                    numero1[z] = ps->msg_payload[j];
+                }
+                *n2 = atoi(numero1);
+            }//if hlref
+            else if(strncmp(ps->msg_type,"HLSAT",5) == 0){
+               for(int j = 0; ps->msg_payload[j]!= c; j++){
+                    numero[j] = ps->msg_payload[j];
+                }
+                *min = atoi(numero);
+                for(int z = 0; ps->msg_payload[j+z]!= '\0'; z++){
+                    numero1[z] = ps->msg_payload[j];
+                }
+                *max = atoi(numero1);
+            }//if hlsat
+            else if(strncmp(ps->msg_type,"HLENA",5) == 0){
+                *hlena = *!hlena;
+            }//if hlena 
+        }//if check 
+    } //for i
+} //task 1() 
 
 void scheduler() {//allows the execution of multiple tasks concurrently
     int i;
@@ -86,21 +123,20 @@ void scheduler() {//allows the execution of multiple tasks concurrently
                 case 2:
                     task3();
                     break;
-            }
+            }//switch(i)
             schedInfo[i].n = 0;//clear the n when n=N
-        }
-    }
-}
+        }//if schedInfo
+    }//for i
+} // scheduler
 
 int main(void) {
     // parser initialization
-    parse_init();
+    parse_init(&pstate);
     //TRISBbits.TRISB0 = 0; LED D3 output
     //TRISBbits.TRISB1 = 0; LED D4 output
     //TRISEbits.TRISE8 = 1; enable S5 button as input
     //TRISDbits.TRISD0 = 1; enable S6 button as input
-    parse_init();
-    PWM_init()
+    PWM_init();
     init_spi();
     init_uart();
     timer_setup_period();
