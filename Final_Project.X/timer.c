@@ -1,4 +1,7 @@
 #include "timer.h"
+#include <xc.h>
+#include "glo.h"
+
 
 void tmr_setup_period(int n, int ms){
 int tckps, pr;

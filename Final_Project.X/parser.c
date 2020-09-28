@@ -1,5 +1,8 @@
-#include "parser.h"
-
+#include"parser.h"
+#include "glo.h"
+#include"spi.h"
+#include<string.h>
+#include<stdlib.h>
 int parse_byte(parser_state* ps, char byte) {
     switch (ps->state) {
         case STATE_DOLLAR:
@@ -40,6 +43,7 @@ int parse_byte(parser_state* ps, char byte) {
             }
             break;
     }
+    
     return NO_MESSAGE;
 }
 

@@ -1,6 +1,8 @@
-#include "parser.h"
 #include "uart.h"
 #include "timer.h"
+#include <xc.h>
+#include "glo.h"
+#include"spi.h"
 
 void init_uart(){
 cb.writeIndex = 0;
@@ -11,7 +13,8 @@ U2STAbits.UTXEN = 1; // enable U1TX
 IEC1bits.U2RXIE = 1;
 tmr_wait_ms(TIMER2, 1000);
 }
-void write_buffer( volatile CircularBuffer* cb, char value, parser_state *pstate){
+
+void write_buffer( volatile CircularBuffer* cb, char value){
 //parse_byte(&pstate, value);
 //if( pstate->state == STATE_TYPE || pstate->state == STATE_PAYLOAD){
 cb->buffer[cb->writeIndex] = value;
@@ -34,7 +37,7 @@ IEC1bits.U2RXIE = 1;
 return 1;
 }
 
-int avl_in_buffer( volatile CircularBuffer* cb){
+int avl_in_buffer(volatile CircularBuffer* cb){
 IEC1bits.U2RXIE = 0;
 int wri = cb->writeIndex;
 int rdi = cb->readIndex;
@@ -50,5 +53,5 @@ else{
 void __attribute__ (( __interrupt__ , __auto_psv__ ) ) _U2RXInterrupt(){
 IFS1bits.U2RXIF = 0;
 char val = U2RXREG;
-write_buffer(&cb, val, &pstate);
+write_buffer(&cb, val);
 }

@@ -15,11 +15,11 @@ int readIndex;
 int writeIndex;
 } CircularBuffer;
 
-volatile CircularBuffer cb;
+
 
 void init_uart();
 void write_buffer( volatile CircularBuffer* cb, char value);
 int read_buffer( volatile CircularBuffer* cb, char* value);
-int avl_in_buffer( volatile CircularBuffer* cb);
+int avl_in_buffer(volatile CircularBuffer* cb);
 #endif	/* UART_H */
 

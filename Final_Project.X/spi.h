@@ -13,6 +13,8 @@ char string[17];
 int size;
 } row_string;
 
+
+
 void init_spi();
 void clear_row(row_string* row);
 void shift_string(char* str , int n, int shiftsize);

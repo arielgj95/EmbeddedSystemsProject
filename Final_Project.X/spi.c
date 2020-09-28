@@ -1,5 +1,8 @@
 #include "spi.h"
 #include "timer.h"
+#include"xc.h"
+#include "glo.h"
+
 
 void init_spi(){
 SPI1CONbits.MSTEN = 1; // master mode
@@ -39,11 +42,11 @@ for(i = 0;str[i]!= '\0' && i < max; i++){
 void move_cursor_first_row(){
 while (SPI1STATbits.SPITBF == 1);
 SPI1BUF = 0x80;
-tmr_wait_us(TIMER2, 250);
+//tmr_wait_ms(TIMER2, 250);
 }
 
 void move_cursor_second_row(){
 while (SPI1STATbits.SPITBF == 1);
 SPI1BUF = 0xC0;
-tmr_wait_us(TIMER2, 250);
+//tmr_wait_ms(TIMER2, 250);
 }

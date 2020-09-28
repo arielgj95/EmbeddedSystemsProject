@@ -1,4 +1,6 @@
 #include"pwm.h"
+#include<xc.h>
+#include "glo.h"
 
 void PWM_init(){
     
@@ -11,9 +13,6 @@ void PWM_init(){
     PWMCON1bits.PEN1H = 1;
 
     PWMCON1bits.PEN2H = 1;
-    
-    float f_pwm = 1000; // 1000 Hz    
-    float t_pwm = 1 / f_pwm;
 
     // PTPER must fit in 15 bits -> <32767
     // PTPER = Fcy/(f_pwm * PTMR_Prescaler) -1

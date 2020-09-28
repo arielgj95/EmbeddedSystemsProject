@@ -15,8 +15,6 @@ typedef struct {
 	int index_payload;
 } parser_state;
 
-parser_state pstate;
-
 int parse_byte(parser_state* ps, char byte);
 void parse_init();
 
