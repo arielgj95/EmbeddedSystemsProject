@@ -27,4 +27,12 @@ extern volatile CircularBuffer cb;
 extern row_string first_row;
 extern row_string second_row;
 
+extern int status;
+
+extern int pdc2;
+extern int pdc1;
+
+extern int n1;
+extern int n2;
+
 #endif	/* GLO_H */

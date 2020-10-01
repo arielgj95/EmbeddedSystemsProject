@@ -1,6 +1,9 @@
 #include "uart.h"
 #include "timer.h"
 #include <xc.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "glo.h"
 #include"spi.h"
 
@@ -54,4 +57,19 @@ void __attribute__ (( __interrupt__ , __auto_psv__ ) ) _U2RXInterrupt(){
 IFS1bits.U2RXIF = 0;
 char val = U2RXREG;
 write_buffer(&cb, val);
+}
+
+void send_to_UART(char* str, int dim){
+    char msg[dim];
+    int i;
+    
+    sprintf(msg, "$%s*", str); 
+    for(i = 0; msg[i] !='\0'; i++){
+        if (U2STAbits.UTXBF == 0) { // Transmission Buffer not full
+            U2TXREG = msg[i];
+        }
+        while (U2STAbits.UTXBF == 1) {
+        } // Transmission Buffer Full, wait for space
+        U2STAbits.OERR = 0; // Reset buffer overrun error
+    }
 }

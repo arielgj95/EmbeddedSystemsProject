@@ -44,7 +44,7 @@ while (SPI1STATbits.SPITBF == 1);
 SPI1BUF = 0x80;
 //tmr_wait_ms(TIMER2, 250);
 }
-
+   
 void move_cursor_second_row(){
 while (SPI1STATbits.SPITBF == 1);
 SPI1BUF = 0xC0;

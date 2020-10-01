@@ -17,4 +17,3 @@ void choose_prescaler(int ms, int* tckps, int* pr);
 void tmr_wait_ms(int n, int ms);
 
 #endif	/* TIMER_H */
-

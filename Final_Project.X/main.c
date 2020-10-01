@@ -46,8 +46,9 @@
 #include "timer.h"
 #include "glo.h"
 #include "adc.h"
+#include "buttonled1.h"
 
-#define MAXTASKS 3
+#define MAXTASKS 5
 
 typedef struct {//one struct for one task to be scheduled
     int n;//counter
@@ -64,7 +65,9 @@ int n1 = 0;
 int n2 = 0;
 int min = MIN_RPM;
 int max = MAX_RPM;
-bool hlena = false;
+int min_old = MIN_RPM;
+int max_old = MAX_RPM;
+
 char max1[10];
 char min1[10];
 char num1[10];
@@ -72,6 +75,9 @@ char num2[10];
 
 float temp_buffer[10];
 float sum_temp = 0;
+
+int count_time = 0;
+int status = 0;
 
 //pwm.h
 long int Fosc = 7372800;
@@ -86,13 +92,28 @@ volatile CircularBuffer cb;
 row_string first_row;
 row_string second_row;
 
-/*Question about task1:
+/*Questions about task1:
 1) Bisogna disattivare interrupt UART all'interno del for? (per evitare di sovrascrivere elementi dell'array mentre lì sto leggendo?);
  *  2) Se abbiamo sempre attivi gli interrupt anche negli altri task, come dovrebbero essere gestiti i messaggi e il buffer?;
  *  3) Si può fare senza interrup (leggendo direttamente da UxRDA);
+ *  4) Impostare di nuovo la velocità dei motori = a zero quando già l'ho fatto prima nell'interrupt?
+ *  5) frequenza a cui lampeggia D4?
  * */
 
-void task1(parser_state *ps, volatile CircularBuffer *cb,int *n1, int *n2, int *max, int *min, bool *hlena){
+void timeout(int *n1, int *n2){
+        *n1 = 0;
+        *n2 = 0;
+        pdc(&pdc1, &pdc2, t_pwm, *n1, *n2);
+        PDC1 = pdc1;
+        PDC2 = pdc2;
+        status = 1;//enter in time_out mode
+}
+
+void task1(parser_state *ps, volatile CircularBuffer *cb,int *n1, int *n2, int *max, int *min){
+    count_time++;
+    if(count_time == 50){
+        timeout(n1, n2);
+    }
     int check;
     char value;
     char c = ',';
@@ -105,57 +126,94 @@ void task1(parser_state *ps, volatile CircularBuffer *cb,int *n1, int *n2, int *
         read = read_buffer(cb, &value);
         check = parse_byte(ps,value);
         if(check == NEW_MESSAGE){
-            //write_string_LCD("yes",10);
-            char numero[10];
-            char numero1[10];
-            //char string[20];
-            if(strncmp(ps->msg_type,"HLREF",5) == 0){
-                for(j = 0; ps->msg_payload[j]!= c; j++){
-                    numero[j] = ps->msg_payload[j];
-                }
-                *n1 = atoi(numero);
-                for(z = j + 1; ps->msg_payload[z] != '\0'; z++){
-                    numero1[z - j - 1] = ps->msg_payload[z];
-                }
-                *n2 = atoi(numero1);
-                //strcat(numero,numero1);
-            }//if hlref
-            else if(strncmp(ps->msg_type,"HLSAT",5) == 0){
-               for(j = 0; ps->msg_payload[j]!= c; j++){
-                    numero[j] = ps->msg_payload[j];
-                }
-                *min = atoi(numero);
-                for( z = j + 1; ps->msg_payload[z] != '\0'; z++){
-                    numero1[z - j - 1] = ps->msg_payload[z];
-                }
-                *max = atoi(numero1);
-                //strcat(numero,numero1);
-            }//if hlsat
+            count_time = 0;
+            if(status!= 2){
+                status = 0; 
+                char numero[10];
+                char numero1[10];
+                if(strncmp(ps->msg_type,"HLREF",5) == 0){
+                    for(j = 0; ps->msg_payload[j]!= c; j++){
+                        numero[j] = ps->msg_payload[j];
+                    }
+                    *n1 = atoi(numero);
+                    for(z = j + 1; ps->msg_payload[z] != '\0'; z++){
+                        numero1[z - j - 1] = ps->msg_payload[z];
+                    }
+                    *n2 = atoi(numero1);
+
+                }//if hlref
+                else if(strncmp(ps->msg_type,"HLSAT",5) == 0){
+                   for(j = 0; ps->msg_payload[j]!= c; j++){
+                        numero[j] = ps->msg_payload[j];
+                    }
+                    *min = atoi(numero);
+                    for( z = j + 1; ps->msg_payload[z] != '\0'; z++){
+                        numero1[z - j - 1] = ps->msg_payload[z];
+                    }
+                    *max = atoi(numero1);
+
+                }//if hlsat
+            }
             else if(strncmp(ps->msg_type,"HLENA",5) == 0){
-                *hlena = !*hlena;
+                status = 0;
+                send_to_UART("MCACK,ENA,1",(int)strlen("MCACK,ENA,1")); //send positive ack to UART
             }//if hlena     
         }//if check 
     } //for i
 } //task 1() 
 
 void task2(int *n1, int *n2, int *min, int *max){
-    if(*min <= 0 && *min >= MIN_RPM && *max >= 0 && *max <= MAX_RPM && min < max)
+    if(*min <= 0 && *min >= MIN_RPM && *max >= 0 && *max <= MAX_RPM && *min < *max)
     {
-        pdc(&pdc1, &pdc2, t_pwm, n1, n2);
-        PDC1 = *pdc1;
-        PDC2 = *pdc2;
+    if(min_old != *min || max_old != *max){
+        min_old = *min;
+        max_old = *max;
+        send_to_UART("MCACK,SAT,1",(int)strlen("MCACK,SAT,1")); //send positive ack to UART
+        }
     }
+    else{
+        *min = min_old;
+        *max = max_old;
+        send_to_UART("MCACK,SAT,0",(int)strlen("MCACK,SAT,0")); //send negative ack to UART
+    }
+    if(*min > *n1) 
+        *n1 = *min;
+    if(*max < *n1)
+        *n1 = *max;
+    if(*min > *n2) 
+        *n2 = *min;
+    if(*max < *n2)
+        *n2 = *max;
+    pdc(&pdc1, &pdc2, t_pwm, *n1, *n2);
+    PDC1 = pdc1;
+    PDC2 = pdc2;
 }
 
 void task3(){
+    char temp_avr[15];
     temp_buffer[temp_counter] = acquire_temperature();
     sum_temp += temp_buffer[temp_counter];
     temp_counter++;
-    if(temp_counter == 9){
+    if(temp_counter == 10){
         sum_temp/=temp_counter;
-        //TO DO --> send ack to pc
+        sprintf(temp_avr,"MCTEM,%f",sum_temp);
+        send_to_UART(temp_avr,(int)strlen(temp_avr));//TO DO --> send ack to pc
         sum_temp = temp_counter = 0;
     }
+}
+
+void task4(){
+    LATBbits.LATB0 = !LATBbits.LATB0; //blink led D3
+    if(status == 1)
+        LATBbits.LATB1 = !LATBbits.LATB1; //blink led D4 in time_out stauts
+    else
+        LATBbits.LATB1 = 0;
+}
+
+void task5(int *n1, int *n2){
+    char str[20];
+    sprintf(str,"MCFBK,%d,%d,%d",*n1,*n2,status);
+    send_to_UART(str,(int)strlen(str));
 }
 
 void scheduler() {//allows the execution of multiple tasks concurrently
@@ -165,7 +223,7 @@ void scheduler() {//allows the execution of multiple tasks concurrently
         if (schedInfo[i].n == schedInfo[i].N) {//when a 'n' of one task is equal to its N, the task is executed
             switch (i) {
                 case 0:
-                    task1(&pstate, &cb, &n1,  &n2,  &max, &min, &hlena);
+                    task1(&pstate, &cb, &n1,  &n2,  &max, &min);
                     break;
                 case 1:
                     task2(&n1, &n2, &min, &max);
@@ -173,44 +231,40 @@ void scheduler() {//allows the execution of multiple tasks concurrently
                 case 2:
                     task3();
                     break;
+                case 3:
+                    task4();
+                    break;
+                case 4:
+                    task5(&n1, &n2);
             }//switch(i)
             schedInfo[i].n = 0;//clear the n when n=N
         }//if schedInfo
     }//for i
 } // scheduler
 
-int main(void) {
-    //TRISBbits.TRISB0 = 0; LED D3 output
-    //TRISBbits.TRISB1 = 0; LED D4 output
-    //TRISEbits.TRISE8 = 1; enable S5 button as input
-    //TRISDbits.TRISD0 = 1; enable S6 button as input
-    
+int main(void) { 
     // parser initialization
     parse_init(&pstate);
     PWM_init();
     init_spi();
     init_uart();
-    adc_init();
+    init_adc();
     
     tmr_setup_period(TIMER1,100);
     
     tmr_wait_ms(TIMER2,1000);
-    /*
-    int bigN[]={1,50,100}; //expire time
+    
+    //scheduler
+    int bigN[]={1,1,1,5,2}; //expire time
     int i;
     for(i=0;i<MAXTASKS;i++){
         schedInfo[i].N=bigN[i]; //set the expire time N for all task;
         schedInfo[i].n = 0;
     }
-    */
+    
     // main loop
     while (1){
         scheduler();
-        /*
-            sprintf(max1,"%d",max);
-            write_string_LCD(max1,10);
-        }
-        */
         tmr_wait_period(TIMER1);
         }
     return 0;

@@ -27,8 +27,8 @@ void PWM_init(){
 }
 
 void pdc(int* pdc1, int* pdc2, float t_pwm, int n1, int n2){
-    float temp1 = ((n1 + MAX_RPM)*t_pwm)/2*MAX_RPM;
-    float temp2 = ((n2 + MAX_RPM)*t_pwm)/2*MAX_RPM;
+    float temp1 = ((n1 + MAX_RPM2)*t_pwm)/2*MAX_RPM2;
+    float temp2 = ((n2 + MAX_RPM2)*t_pwm)/2*MAX_RPM2;
     *pdc1 = temp1*2*PTPER/t_pwm;
     *pdc2 = temp2*2*PTPER/t_pwm;
 }

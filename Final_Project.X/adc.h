@@ -8,8 +8,8 @@
 #ifndef ADC_H
 #define	ADC_H
 
-void adc_init();
-void acquire_temperature();
+void init_adc();
+float acquire_temperature();
 
 #endif	/* ADC_H */
 
