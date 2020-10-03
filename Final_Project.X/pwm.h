@@ -13,5 +13,5 @@
 #define MAX_RPM2 10000
 
 void PWM_init();
-void pdc(int *pdc1, int *pdc2, float t_pwm, int n1, int n2);
+void pdc(long int *pdc1,long int *pdc2, float t_pwm, int n1, int n2);
 #endif	/* PWM_H */

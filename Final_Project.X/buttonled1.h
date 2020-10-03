@@ -12,4 +12,3 @@ void init_leds();
 void init_buttons();
 
 #endif	/* BUTTONLED1_H */
-

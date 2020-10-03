@@ -14,7 +14,7 @@
 #include "parser.h"
 #include "timer.h"
 #include "uart.h"
-
+#include <stdbool.h>
 extern parser_state pstate;
 
 extern long int Fosc;
@@ -28,10 +28,11 @@ extern row_string first_row;
 extern row_string second_row;
 
 extern int status;
+extern bool print;
+extern int count_print;
 
-extern int pdc2;
-extern int pdc1;
-
+extern long int pdc2;
+extern long int pdc1;
 extern int n1;
 extern int n2;
 

@@ -57,12 +57,12 @@ typedef struct {//one struct for one task to be scheduled
 
 
 //GLOBAL VARIABLES
-int pdc1 = 0;
-int pdc2 = 0;
 heartbeat schedInfo[MAXTASKS];
-int temp_counter = 0;
+long int pdc1 = 0;
+long int pdc2 = 0;
 int n1 = 0;
 int n2 = 0;
+
 int min = MIN_RPM;
 int max = MAX_RPM;
 int min_old = MIN_RPM;
@@ -75,9 +75,12 @@ char num2[10];
 
 float temp_buffer[10];
 float sum_temp = 0;
+int status = 0;
 
 int count_time = 0;
-int status = 0;
+int temp_counter = 0;
+int count_print = 0;
+bool print = false;
 
 //pwm.h
 long int Fosc = 7372800;
@@ -98,15 +101,20 @@ row_string second_row;
  *  3) Si può fare senza interrup (leggendo direttamente da UxRDA);
  *  4) Impostare di nuovo la velocità dei motori = a zero quando già l'ho fatto prima nell'interrupt?
  *  5) frequenza a cui lampeggia D4?
+ *  6) Quale terminale abbiamo usato a lezione? Noi ne abbiamo preso uno a babbo su internet
+ *  7) Dobbiamo stampare la temperatura corrente o la media degli ultimi 10 campioni?
  * */
 
 void timeout(int *n1, int *n2){
+    if(status != 2){
         *n1 = 0;
         *n2 = 0;
         pdc(&pdc1, &pdc2, t_pwm, *n1, *n2);
         PDC1 = pdc1;
         PDC2 = pdc2;
         status = 1;//enter in time_out mode
+
+    }
 }
 
 void task1(parser_state *ps, volatile CircularBuffer *cb,int *n1, int *n2, int *max, int *min){
@@ -187,6 +195,16 @@ void task2(int *n1, int *n2, int *min, int *max){
     pdc(&pdc1, &pdc2, t_pwm, *n1, *n2);
     PDC1 = pdc1;
     PDC2 = pdc2;
+    if(!print){
+        clear_row_LCD(SECOND_ROW);
+        sprintf(second_row.string,"RPM: %d,%d",*n1,*n2);
+        write_string_LCD(second_row.string,(int)strlen(second_row.string));
+    }
+    if(print){
+        clear_row_LCD(SECOND_ROW);
+        sprintf(second_row.string,"RPM, %ld,%ld", pdc1, pdc2);
+        write_string_LCD(second_row.string,(int)strlen(second_row.string));
+    }
 }
 
 void task3(){
@@ -199,15 +217,42 @@ void task3(){
         sprintf(temp_avr,"MCTEM,%f",sum_temp);
         send_to_UART(temp_avr,(int)strlen(temp_avr));//TO DO --> send ack to pc
         sum_temp = temp_counter = 0;
+    }    
+    if(!print){
+        clear_row_LCD(FIRST_ROW);
+        if(status == 0){
+        sprintf(first_row.string,"STA: C TEM: %.1f",temp_buffer[temp_counter]);
+        write_string_LCD(first_row.string,(int)strlen(first_row.string));
+        }
+        else if(status == 1){
+        sprintf(first_row.string,"STA: T TEM: %.1f",temp_buffer[temp_counter]);
+        write_string_LCD(first_row.string,(int)strlen(first_row.string));
+        }
+        else if(status == 2){
+        sprintf(first_row.string,"STA: H TEM: %.1f",temp_buffer[temp_counter]);
+        write_string_LCD(first_row.string,(int)strlen(first_row.string));
+        }
     }
 }
 
-void task4(){
+void task4(int *min, int *max){
     LATBbits.LATB0 = !LATBbits.LATB0; //blink led D3
     if(status == 1)
         LATBbits.LATB1 = !LATBbits.LATB1; //blink led D4 in time_out stauts
     else
         LATBbits.LATB1 = 0;
+    if(print){
+        clear_row_LCD(FIRST_ROW);
+        char long_row[24];
+        sprintf(long_row,"SAT MIN:%d MAX:%d", *min, *max);
+        write_long_string_LCD(long_row,count_print);
+        if((int)strlen(long_row) - count_print == 16){
+            count_print = 0;
+        }
+        else{
+            count_print++;
+        }
+    }
 }
 
 void task5(int *n1, int *n2){
@@ -232,7 +277,7 @@ void scheduler() {//allows the execution of multiple tasks concurrently
                     task3();
                     break;
                 case 3:
-                    task4();
+                    task4(&min, &max);
                     break;
                 case 4:
                     task5(&n1, &n2);
@@ -249,10 +294,12 @@ int main(void) {
     init_spi();
     init_uart();
     init_adc();
-    
+    init_leds();
+    init_buttons();
+   
     tmr_setup_period(TIMER1,100);
     
-    tmr_wait_ms(TIMER2,1000);
+    tmr_wait_ms(TIMER3,1000);
     
     //scheduler
     int bigN[]={1,1,1,5,2}; //expire time

@@ -10,6 +10,8 @@
 
 #define TIMER1 (1)
 #define TIMER2 (2)
+#define TIMER3 (3)
+#define TIMER4 (4)
 
 void tmr_setup_period(int n, int ms);
 void tmr_wait_period(int n);

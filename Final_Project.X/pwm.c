@@ -26,9 +26,10 @@ void PWM_init(){
     PTCONbits.PTEN = 1; // Turns on the PWM time base module
 }
 
-void pdc(int* pdc1, int* pdc2, float t_pwm, int n1, int n2){
-    float temp1 = ((n1 + MAX_RPM2)*t_pwm)/2*MAX_RPM2;
-    float temp2 = ((n2 + MAX_RPM2)*t_pwm)/2*MAX_RPM2;
-    *pdc1 = temp1*2*PTPER/t_pwm;
-    *pdc2 = temp2*2*PTPER/t_pwm;
+void pdc(long int* pdc1, long int* pdc2, float t_pwm, int n1, int n2){
+    int real_ptper = PTPER;
+    float temp1 = ((n1 + MAX_RPM2)*t_pwm)/(2*MAX_RPM2);
+    float temp2 = ((n2 + MAX_RPM2)*t_pwm)/(2*MAX_RPM2);
+    *pdc1 = temp1*2*real_ptper/t_pwm;
+    *pdc2 = temp2*2*real_ptper/t_pwm;
 }

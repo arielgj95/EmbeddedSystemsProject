@@ -21,19 +21,43 @@ case TIMER2: {
         T2CONbits.TON = 1;
         break;
         }
+    case TIMER3:{
+        TMR3 = 0; //reset the current value
+        T3CONbits.TCKPS = tckps;
+        PR3 = pr;
+        T3CONbits.TON = 1;
+        break;
+        }
+    case TIMER4:{
+        TMR4 = 0; //reset the current value
+        T4CONbits.TCKPS = tckps;
+        PR4 = pr;
+        T4CONbits.TON = 1;
+        break;
+        }
     }
 }
 
 void tmr_wait_period(int n){
 switch (n){
     case TIMER1:{
-        while (IFS0bits .T1IF == 0) {}
-        IFS0bits .T1IF = 0; // set to zero to be able to recognize the next time the timer has expired
+        while (IFS0bits.T1IF == 0) {}
+        IFS0bits.T1IF = 0; // set to zero to be able to recognize the next time the timer has expired
         break;
         }
 case TIMER2: {
-        while (IFS0bits .T2IF == 0) {}
-        IFS0bits .T2IF = 0; // set to zero to be able to recognize the next time the timer has expired
+        while (IFS0bits.T2IF == 0) {}
+        IFS0bits.T2IF = 0; // set to zero to be able to recognize the next time the timer has expired
+        break;
+        }
+    case TIMER3:{
+        while (IFS0bits.T3IF == 0){}
+        IFS0bits.T3IF = 0; // set to zero to be able to recognize the next time the timer has expired
+        break;
+        }
+    case TIMER4:{
+        while (IFS1bits.T4IF == 0){}
+        IFS1bits.T4IF = 0; // set to zero to be able to recognize the next time the timer has expired
         break;
         }
     }
@@ -76,6 +100,7 @@ void tmr_wait_ms(int n, int ms) {
                 //IEC0bits.T1IE = 0;
             }
             IFS0bits.T1IF = 0;
+            break;
         }
         case TIMER2:
         {
@@ -85,8 +110,29 @@ void tmr_wait_ms(int n, int ms) {
                 //IEC0bits.T1IE = 0;
             }
             IFS0bits.T2IF = 0;
+            break;
         }
-            //I will exit the above loop only when the timer 1 peripheral has expired
+        case TIMER3:
+        {
+            while (IFS0bits.T3IF == 0) { //when timer has expired,it goes to 1: I will exit
+                //from this loop and then I will set up it again to 0. Doing this, in the
+                //next main cycle, I will be again in this loop and wait for an interrupt
+                //IEC0bits.T1IE = 0;
+            }
+            IFS0bits.T3IF = 0;
+            break;
+        }    
+        case TIMER4:
+        {
+            while (IFS1bits.T4IF == 0) { //when timer has expired,it goes to 1: I will exit
+                //from this loop and then I will set up it again to 0. Doing this, in the
+                //next main cycle, I will be again in this loop and wait for an interrupt
+                //IEC0bits.T1IE = 0;
+            }
+            IFS1bits.T4IF = 0;
+            break;
+        }
+        //I will exit the above loop only when the timer 1 peripheral has expired
             //and it has set the T1IF flag to one
             //IFS0bits.T1IF = 0; //set to zero to be able to recognize the next time the timer has expired
     }
