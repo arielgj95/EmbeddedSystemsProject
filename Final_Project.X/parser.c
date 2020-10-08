@@ -3,6 +3,8 @@
 #include"spi.h"
 #include<string.h>
 #include<stdlib.h>
+
+
 int parse_byte(parser_state* ps, char byte) {
     switch (ps->state) {
         case STATE_DOLLAR:
@@ -47,8 +49,9 @@ int parse_byte(parser_state* ps, char byte) {
     return NO_MESSAGE;
 }
 
-void parse_init(parser_state *pstate){
-	pstate->state = STATE_DOLLAR;
-	pstate->index_type = 0;
-	pstate->index_payload = 0;
+//initialize the pstate struct 
+void parse_init(){
+	pstate.state = STATE_DOLLAR;
+	pstate.index_type = 0;
+	pstate.index_payload = 0;
 }

@@ -11,13 +11,7 @@
 #define FIRST_ROW (0)
 #define SECOND_ROW (1)
 
-typedef struct {
-char string[17];
-int size;
-} row_string;
-
 void init_spi();
-void clear_row(row_string* row);
 void clear_row_LCD(int flag);
 void shift_string(char* str , int n, int shiftsize);
 void write_string_LCD(char* str, int max);

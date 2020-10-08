@@ -24,9 +24,6 @@ extern float t_pwm; // 1/f_pwm
 
 extern volatile CircularBuffer cb;
 
-extern row_string first_row;
-extern row_string second_row;
-
 extern int status;
 extern bool print;
 extern int count_print;

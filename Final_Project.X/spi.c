@@ -10,16 +10,6 @@ SPI1CONbits.MODE16 = 0; // 8?bit mode
 SPI1CONbits.PPRE = 3; // 1:1 primary prescaler
 SPI1CONbits.SPRE = 6; // 2:1 secondary prescaler
 SPI1STATbits.SPIEN = 1; // enable SPI
-clear_row(&first_row);
-clear_row(&second_row);
-}
-
-void clear_row(row_string* row){
-int i = 0;
-for ( i = 0; i < 16; i++){
-    row->string[i] = ' ';
-}
-row->size = 0;
 }
 
 void shift_string (char* str , int n, int shiftsize ){
