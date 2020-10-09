@@ -3,7 +3,7 @@
  * Author: franc
  *
  * Created on 21 September 2020, 17:38
- *Here We store the global variables that are used in more than one files in the project
+ * Here We store the global variables that are used in more than one files in the project
  */
 
 #ifndef GLO_H
