@@ -21,9 +21,9 @@ for ( i = 0; i < (n - shiftsize ); i++){
 
 void write_string_LCD(char* str, int max){
 int i = 0;
-for(i = 0;str[i]!= '\0' && i < max; i++){ //for all the carachters inside the string 
+for(i = 0;str[i]!= '\0' && i < max; i++){ //for all the charachters inside the string 
     while (SPI1STATbits.SPITBF == 1); // wait for previous transmissions to finish
-    SPI1BUF = str[i]; //put the carachter into the lcd
+    SPI1BUF = str[i]; //put the charachter into the lcd
     }
 }
 
