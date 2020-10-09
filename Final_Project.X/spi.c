@@ -12,13 +12,6 @@ SPI1CONbits.SPRE = 6; // 2:1 secondary prescaler
 SPI1STATbits.SPIEN = 1; // enable SPI
 }
 
-void shift_string (char* str , int n, int shiftsize ){ //la usiamo?
-int i ;
-for ( i = 0; i < (n - shiftsize ); i++){
-    str[i] = str[i + shiftsize];
-}
-}
-
 void write_string_LCD(char* str, int max){
 int i = 0;
 for(i = 0;str[i]!= '\0' && i < max; i++){ //for all the charachters inside the string 
