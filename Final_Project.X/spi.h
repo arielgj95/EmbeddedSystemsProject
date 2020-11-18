@@ -8,16 +8,13 @@
 #ifndef SPI_H
 #define	SPI_H
 
-typedef struct {
-char string[17];
-int size;
-} row_string;
+#define FIRST_ROW (0)
+#define SECOND_ROW (1)
 
 void init_spi();
-void clear_row(row_string* row);
-void shift_string(char* str , int n, int shiftsize);
+void clear_row_LCD(int flag);
 void write_string_LCD(char* str, int max);
+void write_long_string_LCD(char* str, int counter);
 void move_cursor_first_row();
 void move_cursor_second_row();
 #endif	/* SPI_H */
-

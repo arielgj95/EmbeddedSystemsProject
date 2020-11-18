@@ -1,4 +1,9 @@
-#include "parser.h"
+#include"parser.h"
+#include "glo.h"
+#include"spi.h"
+#include<string.h>
+#include<stdlib.h>
+
 
 int parse_byte(parser_state* ps, char byte) {
     switch (ps->state) {
@@ -40,12 +45,13 @@ int parse_byte(parser_state* ps, char byte) {
             }
             break;
     }
+    
     return NO_MESSAGE;
 }
 
+//initialize the pstate struct 
 void parse_init(){
-    parser_state pstate;
 	pstate.state = STATE_DOLLAR;
-	pstate.index_type = 0; 
+	pstate.index_type = 0;
 	pstate.index_payload = 0;
 }
